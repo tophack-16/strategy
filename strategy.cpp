@@ -320,7 +320,6 @@ void Operate() {
     }
     // 5 : PurchaseReservedCard
     else if (opt.type == 5){
-        opt.PurchaseReservedCard.out();
 
         Json::Value pur;
         pur["color"] = Json::Value(color_name[opt.PurchaseReservedCard.color]);
@@ -339,8 +338,6 @@ void Operate() {
 
     if (ans.size() > 1){
         opt = ans[1];
-
-        opt.DesignateNoble.out();
         Json::Value nob;
         vector <GEM>::iterator gg;
         for (gg = opt.DesignateNoble.req.begin(); gg != opt.DesignateNoble.req.end(); gg++){
@@ -471,7 +468,7 @@ int CountGem(int x) {
 }
 
 void TryGetGemDiff(int w, vector <int> val) { // val [0~30]
-    if (10 - mygems() >= 1) {
+    if (10 - mygems() >= 1 && CountGem(0) == 0 && (int) Player[MyID].res.size() == 3) {
         rep(i, 1, 5) if (CountGem(i) && val[i]) {
             OPERATE o ;
             o.type = 0 ;
@@ -523,11 +520,13 @@ void TryGetGemSame(int w, vector <int> val) { // val [0~30]
 void ReserveCard(int wscore, vector <int> wcolor) {
     if (!CANRESERVE()) return ;
     rep(i, 0, (int) Card.size() - 1) {
+        if (CANBUY(PlayerName, Card[i]) >= 0) continue ;
         OPERATE o ;
         o.type = 2 ;
         o.val = Card[i].score * wscore + wcolor[Card[i].color] ;
         o.ReserveCard = Card[i] ; 
         o.val /= (max(- CANBUY(PlayerName, Card[i]), 0) + 1) * (max(- CANBUY(PlayerName, Card[i]), 0) + 1) ;
+
         if (candidate < o) candidate = o ;
     }
 }
@@ -563,7 +562,6 @@ void PurchaseReservedCard(int wscore, vector <int> wcolor) {
                 OPERATE o ;
                 o.type = 5 ;
                 o.val = now.score * wscore + wcolor[now.color] ;
-                o.val /= tmp + 1 ;
                 o.PurchaseReservedCard = now ;
                 if (candidate < o) candidate = o ;
             }
@@ -663,10 +661,10 @@ void Aim() {// Evaluate Gems
     TryGetGemSame(10, ValCol) ;
     // Evaluate color
     rep(i, 0, 5) ValCol[i] *= 10 ;
-    //ReserveCard(200, ValCol) ;
+    ReserveCard(200, ValCol) ;
     //ReserveCardFromTheTop(50) ;
     PurchaseCard(500, ValCol) ;
-    //PurchaseReservedCard(300, ValCol) ;
+    PurchaseReservedCard(500, ValCol) ;
     ans.push_back(candidate) ;
     DesignateNoble() ;
 }
@@ -788,11 +786,10 @@ void Solve() {
     Pre() ;
     candidate.val = - 1 ;
     candidate.type = - 1 ;
-    /*if (Round <= 10) {
-        if (rand() & 1) Develop() ;
-            else Aim() ;
+    if (Round <= 10) {
+        Aim() ;
     } else {
-        if (CheckStatus(PlayerName)) {
+        /*if (CheckStatus(PlayerName)) {
             GoAndGetIt() ;
         } else { 
             bool flg = true ;
@@ -804,10 +801,8 @@ void Solve() {
             if (flg) {
                 Aim() ;
             }
-            Aim() ;
-        }
-    }*/
-    Aim() ;
+        }*/
+    }
 }
 
 /* Test */
